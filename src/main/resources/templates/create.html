@@ -3,6 +3,13 @@
 
 <head>
 	<title>書籍登録</title>
+	<style>
+		/* テキストエリアのサイズ変更 */
+		textarea {
+			width: 30%;  /* 横幅100% */
+			height: 100px; /* 高さを二倍に */
+		}
+	</style>
 </head>
 
 <body>
@@ -26,7 +33,7 @@
 		<input type="date" th:field="*{endDate}" />
 		<p style="color: blue;">※ステータスに応じて、どちらかの日付のみ入力してください。</p>
 
-		<label>レビュー:</label>
+		<label>レビュー</label>
 		<textarea th:field="*{review}"></textarea>
 		<div th:if="${#fields.hasErrors('review')}" th:errors="*{review}" style="color:red"></div>
 		<p style="color: blue;">※「今読んでいる」ステータスの場合、レビューは登録されません。</p>
