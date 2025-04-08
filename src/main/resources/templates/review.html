@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>レビュー一覧</title>
+</head>
+
+<body>
+	<header style="background-color: #D2B48C; text-align: center;">
+	<h2 style="color: yellow; text-align: left; padding-left: 20px;">レビュー一覧</h2>	</header>
+
+	<a href="/mypage">マイページに戻る</a>
+	<h3>既に読んだ本のレビュー</h2>
+	<ul>
+		<li th:each="book : ${readBooks}">
+			<span th:text="${book.title + ' / ' + book.author + ' / ' + book.review}"></span>
+		</li>
+	</ul>
+</body>
+
+<footer style="background-color: #D2B48C;">
+	<p>© 2025 BookShelf</p>
+</footer>
+
+</html>

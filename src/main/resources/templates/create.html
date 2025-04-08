@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>書籍登録</title>
+</head>
+
+<body>
+	<header style="background-color: #D2B48C; text-align: center;">
+		<h2 style="color: yellow; text-align: left; padding-left: 20px;">書籍登録</h2>
+	</header>
+
+	<form action="#" th:action="@{/create}" th:object="${book}" method="post">
+		<label>ステータス:</label>
+		<select th:field="*{status}">
+			<option value="reading">今読んでいる</option>
+			<option value="read">既に読んだ</option>
+		</select><br />
+		<label>タイトル:</label>
+		<input type="text" th:field="*{title}" /><br />
+		<label>著者:</label>
+		<input type="text" th:field="*{author}" /><br />
+		<label>読書開始日（「今読んでいる」用）:</label>
+		<input type="date" th:field="*{startDate}" /><br />
+		<label>読了日（「既に読んだ」用）:</label>
+		<input type="date" th:field="*{endDate}" />
+		<p style="color: blue;">※ステータスに応じて、どちらかの日付のみ入力してください。</p>
+
+		<label>レビュー:</label>
+		<textarea th:field="*{review}"></textarea>
+		<div th:if="${#fields.hasErrors('review')}" th:errors="*{review}" style="color:red"></div>
+		<p style="color: blue;">※「今読んでいる」ステータスの場合、レビューは登録されません。</p>
+
+		<button type="submit">登録</button>
+	</form>
+
+	<a href="/mypage">戻る</a>
+</body>
+
+<footer style="background-color: #D2B48C;">
+	<p>© 2025 BookShelf</p>
+</footer>
+
+</html>
