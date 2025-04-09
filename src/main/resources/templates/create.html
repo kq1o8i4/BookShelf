@@ -6,8 +6,10 @@
 	<style>
 		/* テキストエリアのサイズ変更 */
 		textarea {
-			width: 30%;  /* 横幅100% */
-			height: 100px; /* 高さを二倍に */
+			width: 30%;
+			/* 横幅100% */
+			height: 100px;
+			/* 高さを二倍に */
 		}
 	</style>
 </head>
@@ -18,30 +20,33 @@
 	</header>
 
 	<form action="#" th:action="@{/create}" th:object="${book}" method="post">
-		<label>ステータス:</label>
-		<select th:field="*{status}">
+		<label>ステータス:</label> <select th:field="*{status}">
 			<option value="reading">今読んでいる</option>
 			<option value="read">既に読んだ</option>
-		</select><br />
-		<label>タイトル:</label>
-		<input type="text" th:field="*{title}" /><br />
-		<label>著者:</label>
-		<input type="text" th:field="*{author}" /><br />
-		<label>読書開始日（「今読んでいる」用）:</label>
-		<input type="date" th:field="*{startDate}" /><br />
-		<label>読了日（「既に読んだ」用）:</label>
-		<input type="date" th:field="*{endDate}" />
+		</select><br /> <label>タイトル:</label> <input type="text" th:field="*{title}" /><br />
+		<label>著者:</label> <input type="text" th:field="*{author}" /><br />
+		<label>読書開始日（「今読んでいる」用）:</label> <input type="date" th:field="*{startDate}" /><br />
+		<label>読了日（「既に読んだ」用）:</label> <input type="date" th:field="*{endDate}" />
 		<p style="color: blue;">※ステータスに応じて、どちらかの日付のみ入力してください。</p>
 
-		<label>レビュー</label>
+		<!-- レビューのラベルの後に改行を追加 -->
+		<!-- 修正後の create.html の該当部分 -->
+		<label>レビュー</label><br />
 		<textarea th:field="*{review}"></textarea>
-		<div th:if="${#fields.hasErrors('review')}" th:errors="*{review}" style="color:red"></div>
+		<br />
+		<div th:if="${#fields.hasErrors('review')}" th:errors="*{review}" style="color: red"></div>
+		<!-- エラーメッセージを表示 -->
+		<div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" style="color: red"></div>
+		<div th:if="${#fields.hasErrors('author')}" th:errors="*{author}" style="color: red"></div>
+		<div th:if="${#fields.hasErrors('status')}" th:errors="*{status}" style="color: red"></div>
+
 		<p style="color: blue;">※「今読んでいる」ステータスの場合、レビューは登録されません。</p>
 
 		<button type="submit">登録</button>
 	</form>
 
 	<a href="/mypage">戻る</a>
+
 </body>
 
 <footer style="background-color: #D2B48C;">
