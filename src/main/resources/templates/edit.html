@@ -11,21 +11,19 @@
 	</header>
 
 	<form action="#" th:action="@{/edit/{id}(id=${book.id})}" th:object="${book}" method="post">
-		<label>タイトル:</label>
-		<input type="text" th:field="*{title}" /><br />
-		<label>著者:</label>
-		<input type="text" th:field="*{author}" /><br />
-		<label>ステータス:</label>
-		<select th:field="*{status}">
+		<label>タイトル:</label> <input type="text" th:field="*{title}" /><br />
+		<label>著者:</label> <input type="text" th:field="*{author}" /><br />
+		<label>ステータス:</label> <select th:field="*{status}">
 			<option value="reading">今読んでいる</option>
 			<option value="read">既に読んだ</option>
-		</select><br />
-		<label>読書開始日:</label>
-		<input type="date" th:field="*{startDate}" /><br />
-		<label>読了日:</label>
+		</select><br /> <label>読書開始日:</label> <input type="date" th:field="*{startDate}" /><br /> <label>読了日:</label>
 		<input type="date" th:field="*{endDate}" /><br />
-		<label>レビュー:</label>
-		<textarea th:field="*{review}"></textarea><br />
+		<!-- 修正後の create.html の該当部分 -->
+		<label>レビュー</label><br />
+		<textarea th:field="*{review}"></textarea>
+		<br />
+		<div th:if="${#fields.hasErrors('review')}" th:errors="*{review}" style="color: red"></div>
+
 		<button type="submit">更新</button>
 	</form>
 
