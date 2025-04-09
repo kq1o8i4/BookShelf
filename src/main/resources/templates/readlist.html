@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>読み終えた本一覧</title>
+	<style>
+		/* <ul> と <li> の間隔を狭くする */
+		ul {
+			padding-left: 0;
+			list-style-type: none;
+			/* デフォルトのリストスタイルを削除 */
+		}
+
+		li {
+			margin-bottom: 5px;
+			/* リスト項目間の間隔を狭くする */
+		}
+
+		.mypage-link {
+			font-size: 16px;
+			margin-top: 20px;
+			display: block;
+			text-decoration: none;
+			color: #000;
+		}
+	</style>
+</head>
+
+<body>
+	<header style="background-color: #D2B48C;">
+		<h2 style="color: yellow; padding-left: 20px;">読み終えた本一覧</h2>
+	</header>
+
+	<div class="mypage-link">
+		<a href="/mypage">マイページに戻る</a>
+	</div>
+
+
+	<!-- 作者別フィルタ -->
+	<form action="/readlist" method="get">
+		<!-- 作者の絞り込み -->
+		<label for="author">作者で絞り込む: </label>
+		<select name="author" id="author" onchange="this.form.submit()">
+			<option value="">すべて</option>
+			<!-- 作者のリストを動的に表示 -->
+			<option th:each="author : ${authors}" th:value="${author}" th:text="${author}"
+				th:selected="${author == selectedAuthor}"></option>
+		</select>
+
+		<!-- タイトルの絞り込み -->
+		<label for="title">タイトルで絞り込む: </label>
+		<select name="title" id="title" onchange="this.form.submit()">
+			<option value="">すべて</option>
+			<!-- タイトルのリストを動的に表示 -->
+			<option th:each="title : ${titles}" th:value="${title}" th:text="${title}"
+				th:selected="${title == selectedTitle}"></option>
+		</select>
+	</form>
+
+
+	<!-- 読み終えた本リスト -->
+	<div th:each="entry : ${booksByAuthor}">
+		<h3 th:text="${entry.key}">Author Name</h3>
+		<!-- 作者名を表示 -->
+		<ul>
+			<li th:each="book : ${entry.value}"><span th:text="${book.title}"></span></li>
+		</ul>
+	</div>
+
+	<a href="/mypage">マイページに戻る</a>
+
+	<footer style="background-color: #D2B48C;">
+		<p>© 2025 BookShelf</p>
+	</footer>
+</body>
+
+</html>
