@@ -2,6 +2,8 @@
 package com.example.bookshelf.controller;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import jakarta.validation.Valid;
 
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.bookshelf.entity.Book;
 import com.example.bookshelf.repository.BookRepository;
@@ -24,11 +27,111 @@ public class BookController {
 
 	@GetMapping("/mypage")
 	public String showMyPage(Model model) {
-		List<Book> readingBooks = bookRepository.findByStatus("reading");
-		List<Book> readBooks = bookRepository.findByStatus("read");
+		List<Book> allReadingBooks = bookRepository.findByStatus("reading");
+		List<Book> allReadBooks = bookRepository.findByStatus("read");
+
+		// 最大7件に制限
+		List<Book> readingBooks = allReadingBooks.stream().limit(3).toList();
+		List<Book> readBooks = allReadBooks.stream().limit(3).toList();
+
 		model.addAttribute("readingBooks", readingBooks);
 		model.addAttribute("readBooks", readBooks);
+
+		// 8件以上あるか判定
+		model.addAttribute("hasMoreReading", allReadingBooks.size() > 3);
+		model.addAttribute("hasMoreRead", allReadBooks.size() > 3);
+
 		return "mypage";
+	}
+
+	@GetMapping("/readinglist")
+	public String showReadingList(@RequestParam(value = "author", required = false) String author,
+			@RequestParam(value = "title", required = false) String title,
+			Model model) {
+		// 「読み途中」の書籍を取得
+		List<Book> readingBooks = bookRepository.findByStatus("reading");
+
+		// 作者で絞り込み
+		if (author != null && !author.isEmpty()) {
+			readingBooks = readingBooks.stream()
+					.filter(book -> book.getAuthor().equals(author))
+					.collect(Collectors.toList());
+		}
+
+		// タイトルで絞り込み
+		if (title != null && !title.isEmpty()) {
+			readingBooks = readingBooks.stream()
+					.filter(book -> book.getTitle().equals(title))
+					.collect(Collectors.toList());
+		}
+
+		// 作者別にグループ化
+		Map<String, List<Book>> booksByAuthor = readingBooks.stream()
+				.collect(Collectors.groupingBy(Book::getAuthor));
+
+		// タイトルのリストを取得
+		List<String> titles = readingBooks.stream()
+				.map(Book::getTitle)
+				.distinct()
+				.collect(Collectors.toList());
+
+		// 作者のリストを取得（ユニークな作者名のみ）
+		List<String> authors = readingBooks.stream()
+				.map(Book::getAuthor)
+				.distinct()
+				.collect(Collectors.toList());
+
+		model.addAttribute("booksByAuthor", booksByAuthor);
+		model.addAttribute("titles", titles); // タイトルリストをモデルに追加
+		model.addAttribute("authors", authors); // 作者リストをモデルに追加
+		model.addAttribute("selectedAuthor", author); // 選択された作者をモデルに追加
+		model.addAttribute("selectedTitle", title); // 選択されたタイトルをモデルに追加
+		return "readinglist";
+	}
+
+	@GetMapping("/readlist")
+	public String showReadList(@RequestParam(value = "author", required = false) String author,
+			@RequestParam(value = "title", required = false) String title,
+			Model model) {
+		// 「読了済み」の書籍を取得
+		List<Book> readBooks = bookRepository.findByStatus("read");
+
+		// 作者で絞り込み
+		if (author != null && !author.isEmpty()) {
+			readBooks = readBooks.stream()
+					.filter(book -> book.getAuthor().equals(author))
+					.collect(Collectors.toList());
+		}
+
+		// タイトルで絞り込み
+		if (title != null && !title.isEmpty()) {
+			readBooks = readBooks.stream()
+					.filter(book -> book.getTitle().equals(title))
+					.collect(Collectors.toList());
+		}
+
+		// 作者別にグループ化
+		Map<String, List<Book>> booksByAuthor = readBooks.stream()
+				.collect(Collectors.groupingBy(Book::getAuthor));
+
+		// タイトルのリストを取得
+		List<String> titles = readBooks.stream()
+				.map(Book::getTitle)
+				.distinct()
+				.collect(Collectors.toList());
+
+		// 作者のリストを取得（ユニークな作者名のみ）
+		List<String> authors = readBooks.stream()
+				.map(Book::getAuthor)
+				.distinct()
+				.collect(Collectors.toList());
+
+		model.addAttribute("booksByAuthor", booksByAuthor);
+		model.addAttribute("titles", titles); // タイトルリストをモデルに追加
+		model.addAttribute("authors", authors); // 作者リストをモデルに追加
+		model.addAttribute("selectedAuthor", author); // 選択された作者をモデルに追加
+		model.addAttribute("selectedTitle", title); // 選択されたタイトルをモデルに追加
+		return "readlist";
 	}
 
 	@GetMapping("/create")
@@ -39,6 +142,12 @@ public class BookController {
 
 	@PostMapping("/create")
 	public String createBook(@Valid @ModelAttribute Book book, BindingResult result, Model model) {
+		// 既存の書籍情報と完全一致するデータが存在するかを確認
+		if (bookRepository.existsByTitleAndAuthorAndStatus(book.getTitle(), book.getAuthor(), book.getStatus())) {
+			result.rejectValue("title", "error.book", "この書籍は既に登録されています。");
+			return "create"; // エラーを返し、再度入力フォームに戻る
+		}
+
 		if ("reading".equals(book.getStatus())) {
 			book.setReview(null);
 			book.setEndDate(null); // 読了日は不要
@@ -54,22 +163,60 @@ public class BookController {
 		return "redirect:/mypage";
 	}
 
-	// /review に対する処理を追加
 	@GetMapping("/review")
-	public String showReviews(Model model) {
-		List<Book> readBooks = bookRepository.findByStatus("read");
-		model.addAttribute("readBooks", readBooks);
+	public String showReviews(@RequestParam(value = "author", required = false) String author,
+			@RequestParam(value = "title", required = false) String title,
+			Model model) {
+		// レビューが存在する「read」ステータスの本を取得
+		List<Book> readBooksWithReview = bookRepository.findByStatusAndReviewIsNotNullAndReviewNot("read", "");
+
+		// もし author が指定されていれば絞り込む
+		if (author != null && !author.isEmpty()) {
+			readBooksWithReview = readBooksWithReview.stream()
+					.filter(book -> book.getAuthor().equals(author))
+					.collect(Collectors.toList());
+		}
+
+		// もし title が指定されていれば絞り込む
+		if (title != null && !title.isEmpty()) {
+			readBooksWithReview = readBooksWithReview.stream()
+					.filter(book -> book.getTitle().equals(title))
+					.collect(Collectors.toList());
+		}
+
+		// 絞り込んだリストをモデルに追加
+		model.addAttribute("readBooks", readBooksWithReview);
+
+		// その他の情報（作者やタイトルのリストなど）もモデルに追加
+		List<String> authors = readBooksWithReview.stream()
+				.map(Book::getAuthor)
+				.distinct()
+				.collect(Collectors.toList());
+		List<String> titles = readBooksWithReview.stream()
+				.map(Book::getTitle)
+				.distinct()
+				.collect(Collectors.toList());
+
+		model.addAttribute("authors", authors);
+		model.addAttribute("titles", titles);
+		model.addAttribute("selectedAuthor", author);
+		model.addAttribute("selectedTitle", title);
+
 		return "review";
 	}
 
 	@GetMapping("/bookchoice")
-	public String showBookChoice(Model model) {
-		// すべての書籍を取得
-		List<Book> books = bookRepository.findAll();
+	public String showBookChoice(@RequestParam(required = false) String status, Model model) {
+		List<Book> books;
 
-		// モデルに書籍リストを追加
+		if (status != null && !status.isEmpty()) {
+			books = bookRepository.findByStatus(status);
+			model.addAttribute("selectedStatus", status); // 選択状態保持用
+		} else {
+			books = bookRepository.findAll();
+		}
+
 		model.addAttribute("books", books);
-		// 空のBookオブジェクトをidフィールド用に追加
 		model.addAttribute("selectedBookId", new Book());
 
 		return "bookchoice";
@@ -101,7 +248,7 @@ public class BookController {
 		bookRepository.save(book);
 		return "redirect:/mypage"; // マイページにリダイレクト
 	}
-	
+
 	// 書籍削除処理
 	@PostMapping("/delete/{id}")
 	public String deleteBook(@PathVariable Long id) {
