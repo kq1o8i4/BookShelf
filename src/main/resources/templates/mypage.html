@@ -8,34 +8,48 @@
 <body>
 	<!-- ヘッダー（文字列「マイページ」を削除）-->
 	<header style="background-color: #D2B48C; text-align: left; padding-left: 20px;">
-		<h2 style="color:yellow;">マイページ</h2>
+		<h2 style="color: yellow;">マイページ</h2>
 	</header>
 
 	<a href="/create">書籍登録</a>
 
-	
-	<h3>今読んでいる本</h3>
-	<ul>
-		<li th:each="book : ${readingBooks}">
-			<span th:text="${book.title + ' / ' + book.author + ' / '}"></span>
-			<span style="color: brown;"
-				th:text="${book.startDate != null ? '読み始めた日: ' + #temporals.format(book.startDate, 'yyyy/MM/dd') : '読み始めた日: 未設定'}">
-			</span>
-		</li>
-	</ul>
 
-	<h3>読了済</h3>
+	<h3>
+		<span style="text-decoration: underline;"> <a href="/readinglist"
+				style="text-decoration: underline; color: inherit;">読んでいる本</a>
+		</span>
+	</h3>
 	<ul>
-		<li th:each="book : ${readBooks}">
-			<span th:text="${book.title + ' / ' + book.author + ' / '}"></span>
-			<span style="color: brown;"
-				th:text="${book.endDate != null ? '読み終わった日: ' + #temporals.format(book.endDate, 'yyyy/MM/dd') : '読み終わった日: 未設定'}">
-			</span>
-		</li>
+		<li th:each="book : ${readingBooks}"><span th:text="${book.title + ' / ' + book.author + ' / '}"></span> <span
+				style="color: brown;"
+				th:text="${book.startDate != null ? '読み始めた日: ' + #temporals.format(book.startDate, 'yyyy/MM/dd') : '読み始めた日: 未設定'}">
+			</span></li>
 	</ul>
+	<p th:if="${hasMoreReading}">
+		<a href="/readinglist" style="text-decoration: underline; color: blue;">and more</a>
+	</p>
+
+	<h3>
+		<span style="text-decoration: underline;"> <a href="/readlist"
+				style="text-decoration: underline; color: inherit;">読み終わった本</a>
+		</span>
+	</h3>
+	<ul>
+		<li th:each="book : ${readBooks}"><span th:text="${book.title + ' / ' + book.author + ' / '}"></span> <span
+				style="color: brown;"
+				th:text="${book.endDate != null ? '読み終わった日: ' + #temporals.format(book.endDate, 'yyyy/MM/dd') : '読み終わった日: 未設定'}">
+			</span></li>
+	</ul>
+	<p th:if="${hasMoreRead}">
+		<a href="/readlist" style="text-decoration: underline; color: blue;">and
+			more</a>
+	</p>
+
+
 
 	<!-- 編集リンク -->
-	<a href="/bookchoice">編集</a> <!-- ここが編集ページへのリンク -->
+	<a href="/bookchoice">編集</a>
+	<!-- ここが編集ページへのリンク -->
 
 	<a href="/review">レビュー一覧</a>
 
