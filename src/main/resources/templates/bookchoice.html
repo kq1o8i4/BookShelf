@@ -19,6 +19,17 @@
 		<h2 style="color: yellow; text-align: left; padding-left: 20px;">編集する書籍を選択してください</h2>
 	</header>
 
+	<form method="get" action="/bookchoice" style="margin: 10px 20px; font-weight: bold;">
+		<label>ステータスで絞り込む:</label> <select name="status">
+			<option value="" th:selected="${selectedStatus == null}">--
+				全て --</option>
+			<option value="reading" th:selected="${selectedStatus == 'reading'}">今読んでいる</option>
+			<option value="read" th:selected="${selectedStatus == 'read'}">既に読んだ</option>
+		</select>
+		<button type="submit">絞り込む</button>
+	</form>
+
+
 	<label>書籍選択:</label>
 	<select id="bookSelect">
 		<option value="">-- 書籍を選んでください --</option>
