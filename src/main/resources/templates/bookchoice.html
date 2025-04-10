@@ -4,19 +4,14 @@
 <head>
 	<title>書籍選択</title>
 	<script>
-		// ページ読み込み後にラベルのスタイルを変更する
 		window.onload = function() {
-			// すべてのlabel要素を取得
 			const labels = document.querySelectorAll('label');
-			
-			// それぞれのlabelに対して左揃えに設定
+		
 			labels.forEach(function(label) {
 				label.style.textAlign = 'left';
-				label.style.paddingLeft = '0'; // 左の字下げを解除（統一）
+				label.style.paddingLeft = '0';
 			});
 		};
-
-		// 編集ページに遷移
 		function goToEditPage() {
 			const select = document.getElementById("bookSelect");
 			const bookId = select.value;
@@ -41,8 +36,7 @@
 		</select>
 		<button type="submit">絞り込む</button>
 	</form>
-
-	<!-- 書籍選択ラベルを左詰めにする -->
+	
 	<label>書籍選択:</label>
 	<select id="bookSelect">
 		<option value="">-- 書籍を選んでください --</option>
