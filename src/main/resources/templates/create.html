@@ -14,8 +14,11 @@
 			font-size: 12px;
 		}
 
-		label, input, select, textarea {
-			margin-bottom: 5px; 
+		label,
+		input,
+		select,
+		textarea {
+			margin-bottom: 5px;
 		}
 
 		br {
@@ -30,32 +33,34 @@
 	</header>
 
 	<form action="#" th:action="@{/create}" th:object="${book}" method="post">
-		<label>ステータス:</label> 
+		<label>ステータス:</label>
 		<select th:field="*{status}">
 			<option value="reading">今読んでいる</option>
 			<option value="read">読み終わった</option>
-		</select><br /> 
-		
-		<label>タイトル:</label> 
+		</select><br />
+
+		<label>タイトル:</label>
 		<input type="text" th:field="*{title}" /><br />
-		
-		<label>著者:</label> 
+
+		<label>著者:</label>
 		<input type="text" th:field="*{author}" /><br />
-		
-		<label>読書開始日（「今読んでいる」用）:</label> 
-		<input type="date" th:field="*{startDate}" /><br />
-		
-		<label>読了日（「読み終わった」用）:</label> 
-		<input type="date" th:field="*{endDate}" />
-		
+
+		<label>読書開始日（「今読んでいる」用）:</label>
+		<input type="date" th:field="*{startDate}"
+			th:attr="max=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" /><br />
+
+		<label>読了日（「読み終わった」用）:</label>
+		<input type="date" th:field="*{endDate}" th:attr="max=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" />
+
+
 		<p class="small-blue-text">※ステータスに応じて、どちらかの日付のみ入力してください。</p>
 
 		<label>レビュー</label><br />
 		<textarea th:field="*{review}"></textarea>
 		<br />
-		
+
 		<div th:if="${#fields.hasErrors('review')}" th:errors="*{review}" style="color: red"></div>
-		
+
 		<!-- エラーメッセージを表示 -->
 		<div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" style="color: red"></div>
 		<div th:if="${#fields.hasErrors('author')}" th:errors="*{author}" style="color: red"></div>
