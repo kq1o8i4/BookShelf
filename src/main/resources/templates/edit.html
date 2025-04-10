@@ -18,7 +18,7 @@
 			<option value="read">読み終わった</option>
 		</select><br /> <label>読書開始日:</label> <input type="date" th:field="*{startDate}" /><br /> <label>読了日:</label>
 		<input type="date" th:field="*{endDate}" /><br />
-		<!-- 修正後の create.html の該当部分 -->
+
 		<label>レビュー</label><br />
 		<textarea th:field="*{review}"></textarea>
 		<br />
@@ -26,8 +26,7 @@
 
 		<button type="submit">更新</button>
 	</form>
-
-	<!-- 削除ボタン -->
+	
 	<form th:action="@{/delete/{id}(id=${book.id})}" method="post" style="margin-top: 20px;">
 		<button type="submit" onclick="return confirm('本当に削除しますか？')">削除</button>
 	</form>
