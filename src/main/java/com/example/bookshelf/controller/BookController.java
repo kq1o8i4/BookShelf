@@ -1,3 +1,4 @@
+
 package com.example.bookshelf.controller;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class BookController {
 
 	@GetMapping("/mypage")
 	public String showMyPage(Model model) {
+
 		List<Book> allReadingBooks = bookRepository.findByStatus("reading");
 		List<Book> allReadBooks = bookRepository.findByStatus("read");
 		List<Book> readingBooks = allReadingBooks.stream().limit(3).toList();
@@ -44,14 +46,14 @@ public class BookController {
 			@RequestParam(value = "author", required = false) String author,
 			@RequestParam(value = "titleKeyword", required = false) String titleKeyword,
 			Model model) {
-		
+
 		List<Book> readingBooks = bookRepository.findByStatus("reading");
 		if (author != null && !author.isEmpty()) {
 			readingBooks = readingBooks.stream()
 					.filter(book -> book.getAuthor().equals(author))
 					.collect(Collectors.toList());
 		}
-		
+
 		if (titleKeyword != null && !titleKeyword.isEmpty()) {
 			readingBooks = readingBooks.stream()
 					.filter(book -> book.getTitle() != null && book.getTitle().contains(titleKeyword))
@@ -59,7 +61,7 @@ public class BookController {
 		}
 		Map<String, List<Book>> booksByAuthor = readingBooks.stream()
 				.collect(Collectors.groupingBy(Book::getAuthor));
-		
+
 		List<String> authors = bookRepository.findByStatus("reading").stream()
 				.map(Book::getAuthor)
 				.distinct()
@@ -77,15 +79,15 @@ public class BookController {
 			@RequestParam(value = "author", required = false) String author,
 			@RequestParam(value = "titleKeyword", required = false) String titleKeyword,
 			Model model) {
-		
+
 		List<Book> readBooks = bookRepository.findByStatus("read");
-		
+
 		if (author != null && !author.isEmpty()) {
 			readBooks = readBooks.stream()
 					.filter(book -> book.getAuthor().equals(author))
 					.collect(Collectors.toList());
 		}
-		
+
 		if (titleKeyword != null && !titleKeyword.isEmpty()) {
 			readBooks = readBooks.stream()
 					.filter(book -> book.getTitle() != null && book.getTitle().contains(titleKeyword))
@@ -102,7 +104,7 @@ public class BookController {
 		model.addAttribute("booksByAuthor", booksByAuthor);
 		model.addAttribute("authors", authors);
 		model.addAttribute("selectedAuthor", author);
-		model.addAttribute("titleKeyword", titleKeyword); 
+		model.addAttribute("titleKeyword", titleKeyword);
 
 		return "readlist";
 	}
@@ -121,9 +123,9 @@ public class BookController {
 		}
 		if ("reading".equals(book.getStatus())) {
 			book.setReview(null);
-			book.setEndDate(null); 
+			book.setEndDate(null);
 		} else if ("read".equals(book.getStatus())) {
-			book.setStartDate(null); 
+			book.setStartDate(null);
 		}
 		if (result.hasErrors()) {
 			return "create";
@@ -143,7 +145,7 @@ public class BookController {
 					.filter(book -> book.getAuthor().equals(author))
 					.collect(Collectors.toList());
 		}
-		
+
 		if (title != null && !title.isEmpty()) {
 			readBooksWithReview = readBooksWithReview.stream()
 					.filter(book -> book.getTitle().equals(title))
@@ -174,7 +176,7 @@ public class BookController {
 
 		if (status != null && !status.isEmpty()) {
 			books = bookRepository.findByStatus(status);
-			model.addAttribute("selectedStatus", status); 
+			model.addAttribute("selectedStatus", status);
 		} else {
 			books = bookRepository.findAll();
 		}
@@ -185,16 +187,14 @@ public class BookController {
 		return "bookchoice";
 	}
 
-	@GetMapping("/edit/{id}")
-	public String showEditForm(@PathVariable Long id, Model model) {
-		Book book = bookRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
-		model.addAttribute("book", book);
-		return "edit";
-	}
-	
 	@PostMapping("/edit/{id}")
-	public String updateBook(@PathVariable Long id, Book updatedBook) {
+	public String updateBook(@PathVariable Long id, @Valid @ModelAttribute Book updatedBook, BindingResult result,
+			Model model) {
+		if (result.hasErrors()) {
+			model.addAttribute("book", updatedBook);
+			return "edit";
+		}
+
 		Book book = bookRepository.findById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
 
@@ -206,14 +206,23 @@ public class BookController {
 		book.setReview(updatedBook.getReview());
 
 		bookRepository.save(book);
-		return "redirect:/mypage"; 
+		return "redirect:/mypage";
 	}
-	
+
+	@GetMapping("/edit/{id}")
+	public String showEditForm(@PathVariable Long id, Model model) {
+		Book book = bookRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
+		model.addAttribute("book", book);
+		return "edit";
+	}
+
 	@PostMapping("/delete/{id}")
 	public String deleteBook(@PathVariable Long id) {
 		bookRepository.deleteById(id);
 		return "redirect:/delete";
 	}
+
 	@GetMapping("/delete")
 	public String showDeletePage() {
 		return "delete";
