@@ -45,9 +45,11 @@ public class BookController {
 	}
 
 	@GetMapping("/readinglist")
-	public String showReadingList(@RequestParam(value = "author", required = false) String author,
-			@RequestParam(value = "title", required = false) String title,
+	public String showReadingList(
+			@RequestParam(value = "author", required = false) String author,
+			@RequestParam(value = "titleKeyword", required = false) String titleKeyword,
 			Model model) {
+
 		// 「読み途中」の書籍を取得
 		List<Book> readingBooks = bookRepository.findByStatus("reading");
 
@@ -58,10 +60,10 @@ public class BookController {
 					.collect(Collectors.toList());
 		}
 
-		// タイトルで絞り込み
-		if (title != null && !title.isEmpty()) {
+		// タイトルのキーワードで絞り込み（部分一致）
+		if (titleKeyword != null && !titleKeyword.isEmpty()) {
 			readingBooks = readingBooks.stream()
-					.filter(book -> book.getTitle().equals(title))
+					.filter(book -> book.getTitle() != null && book.getTitle().contains(titleKeyword))
 					.collect(Collectors.toList());
 		}
 
@@ -69,30 +71,25 @@ public class BookController {
 		Map<String, List<Book>> booksByAuthor = readingBooks.stream()
 				.collect(Collectors.groupingBy(Book::getAuthor));
 
-		// タイトルのリストを取得
-		List<String> titles = readingBooks.stream()
-				.map(Book::getTitle)
-				.distinct()
-				.collect(Collectors.toList());
-
-		// 作者のリストを取得（ユニークな作者名のみ）
-		List<String> authors = readingBooks.stream()
+		// 作者リスト（全体対象のため、最初に取得）
+		List<String> authors = bookRepository.findByStatus("reading").stream()
 				.map(Book::getAuthor)
 				.distinct()
 				.collect(Collectors.toList());
 
 		model.addAttribute("booksByAuthor", booksByAuthor);
-		model.addAttribute("titles", titles); // タイトルリストをモデルに追加
-		model.addAttribute("authors", authors); // 作者リストをモデルに追加
-		model.addAttribute("selectedAuthor", author); // 選択された作者をモデルに追加
-		model.addAttribute("selectedTitle", title); // 選択されたタイトルをモデルに追加
+		model.addAttribute("authors", authors);
+		model.addAttribute("selectedAuthor", author);
+		model.addAttribute("titleKeyword", titleKeyword); // ← 新たに追加
 		return "readinglist";
 	}
 
 	@GetMapping("/readlist")
-	public String showReadList(@RequestParam(value = "author", required = false) String author,
-			@RequestParam(value = "title", required = false) String title,
+	public String showReadList(
+			@RequestParam(value = "author", required = false) String author,
+			@RequestParam(value = "titleKeyword", required = false) String titleKeyword,
 			Model model) {
+
 		// 「読了済み」の書籍を取得
 		List<Book> readBooks = bookRepository.findByStatus("read");
 
@@ -103,10 +100,10 @@ public class BookController {
 					.collect(Collectors.toList());
 		}
 
-		// タイトルで絞り込み
-		if (title != null && !title.isEmpty()) {
+		// タイトルのキーワードで絞り込み（部分一致）
+		if (titleKeyword != null && !titleKeyword.isEmpty()) {
 			readBooks = readBooks.stream()
-					.filter(book -> book.getTitle().equals(title))
+					.filter(book -> book.getTitle() != null && book.getTitle().contains(titleKeyword))
 					.collect(Collectors.toList());
 		}
 
@@ -114,23 +111,17 @@ public class BookController {
 		Map<String, List<Book>> booksByAuthor = readBooks.stream()
 				.collect(Collectors.groupingBy(Book::getAuthor));
 
-		// タイトルのリストを取得
-		List<String> titles = readBooks.stream()
-				.map(Book::getTitle)
-				.distinct()
-				.collect(Collectors.toList());
-
-		// 作者のリストを取得（ユニークな作者名のみ）
-		List<String> authors = readBooks.stream()
+		// 作者のリストを取得（元の全リストから抽出）
+		List<String> authors = bookRepository.findByStatus("read").stream()
 				.map(Book::getAuthor)
 				.distinct()
 				.collect(Collectors.toList());
 
 		model.addAttribute("booksByAuthor", booksByAuthor);
-		model.addAttribute("titles", titles); // タイトルリストをモデルに追加
-		model.addAttribute("authors", authors); // 作者リストをモデルに追加
-		model.addAttribute("selectedAuthor", author); // 選択された作者をモデルに追加
-		model.addAttribute("selectedTitle", title); // 選択されたタイトルをモデルに追加
+		model.addAttribute("authors", authors);
+		model.addAttribute("selectedAuthor", author);
+		model.addAttribute("titleKeyword", titleKeyword); // ← ここが新規追加
+
 		return "readlist";
 	}
 
