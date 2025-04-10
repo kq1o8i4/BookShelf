@@ -1,7 +1,7 @@
-// ディレクトリ: entity/Book.java
 package com.example.bookshelf.entity;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,6 +17,7 @@ import lombok.Data;
 @Data
 @Entity
 public class Book {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -38,4 +39,22 @@ public class Book {
 
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate endDate;
+
+	// startDateをフォーマットして返す
+	public String getFormattedStartDate() {
+		if (startDate != null) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			return startDate.format(formatter);
+		}
+		return null; // startDateがnullの場合はnullを返す
+	}
+
+	// endDateをフォーマットして返す
+	public String getFormattedEndDate() {
+		if (endDate != null) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			return endDate.format(formatter);
+		}
+		return null; // endDateがnullの場合はnullを返す
+	}
 }
