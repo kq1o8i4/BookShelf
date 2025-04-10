@@ -12,13 +12,19 @@
 
 	<form action="#" th:action="@{/edit/{id}(id=${book.id})}" th:object="${book}" method="post">
 		<label>タイトル:</label> <input type="text" th:field="*{title}" /><br />
+		<div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" style="color: red"></div>
+
 		<label>著者:</label> <input type="text" th:field="*{author}" /><br />
 		<label>ステータス:</label> <select th:field="*{status}">
 			<option value="reading">今読んでいる</option>
 			<option value="read">読み終わった</option>
-		</select><br /> <label>読書開始日:</label> <input type="date" th:field="*{startDate}" /><br /> <label>読了日:</label>
-		<input type="date" th:field="*{endDate}" /><br />
-
+		</select><br />
+		<label>読書開始日:</label>
+		<input type="date" th:field="*{startDate}"
+			th:attr="max=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" /><br />
+		<label>読了日:</label>
+		<input type="date" th:field="*{endDate}"
+			th:attr="max=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" /><br />
 		<label>レビュー</label><br />
 		<textarea th:field="*{review}"></textarea>
 		<br />
@@ -26,7 +32,7 @@
 
 		<button type="submit">更新</button>
 	</form>
-	
+
 	<form th:action="@{/delete/{id}(id=${book.id})}" method="post" style="margin-top: 20px;">
 		<button type="submit" onclick="return confirm('本当に削除しますか？')">削除</button>
 	</form>
