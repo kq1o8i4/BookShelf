@@ -4,16 +4,13 @@
 <head>
 	<title>読み終わった本一覧</title>
 	<style>
-		/* <ul> と <li> の間隔を狭くする */
 		ul {
 			padding-left: 0;
 			list-style-type: none;
-			/* デフォルトのリストスタイルを削除 */
 		}
 
 		li {
 			margin-bottom: 5px;
-			/* リスト項目間の間隔を狭くする */
 		}
 
 		.mypage-link {
@@ -23,28 +20,21 @@
 			text-decoration: none;
 			color: #000;
 		}
-
-		/* タイトルと読了日を横並びにするためのスタイル */
 		.book-info {
 			display: flex;
 			align-items: center;
-			/* 間隔を狭くする */
 			gap: 10px;
-			/* ここで間隔を調整 */
 		}
 
 		.book-info p {
 			margin: 0;
-			/* タイトルと読了日間のスペースを調整 */
 		}
-
-		/* 日付部分にブラウンカラーを適用 */
 		.date-text {
 			color: brown;
 		}
 	</style>
 </head>
-
+	
 <body>
 	<header style="background-color: #D2B48C;">
 		<h2 style="color: yellow; padding-left: 20px;">読み終わった本一覧</h2>
@@ -52,8 +42,7 @@
 	<div class="mypage-link">
 		<a href="/mypage">マイページに戻る</a>
 	</div>
-
-	<!-- フォームで選択された情報をGETメソッドでサーバに送信 -->
+	
 	<form action="/readlist" method="get">
 		<label for="author">作者で絞り込む: </label>
 			<select name="author" id="author" onchange="this.form.submit()">
@@ -61,17 +50,12 @@
 				<option th:each="author : ${authors}" th:value="${author}" th:text="${author}"
 					th:selected="${author == selectedAuthor}"></option>
 			</select>
-
-	<!-- タイトルのキーワード検索 -->
+		
 	<label for="titleKeyword">タイトル検索: </label>
 	<input type="text" id="titleKeyword" name="titleKeyword" th:value="${titleKeyword}" placeholder="キーワードを入力" />
 	<button type="submit">検索</button>
 	</form>
-
-	<!-- 書籍リスト表示 -->
 	<div th:each="entry : ${booksByAuthor}">
-
-		<!-- 1冊ごとに表示 -->
 		<div th:each="book : ${entry.value}" class="book-card">
 			<div class="book-info">
 				<p>
