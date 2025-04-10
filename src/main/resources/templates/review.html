@@ -48,9 +48,11 @@
 	</form>
 	<ul>
 		<li th:each="book : ${readBooks}">
-			<span th:text="${book.review + ' / ' + book.title}"></span><br />
+			<span th:text="${book.review}"></span>
+			<a th:href="@{/edit/{id}(id=${book.id})}" th:text="' / ' + ${book.title}"></a>
 		</li>
 	</ul>
+
 
 	<footer style="background-color: #D2B48C;">
 		<p>© 2025 BookShelf</p>
