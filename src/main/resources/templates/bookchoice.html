@@ -4,6 +4,19 @@
 <head>
 	<title>書籍選択</title>
 	<script>
+		// ページ読み込み後にラベルのスタイルを変更する
+		window.onload = function() {
+			// すべてのlabel要素を取得
+			const labels = document.querySelectorAll('label');
+			
+			// それぞれのlabelに対して左揃えに設定
+			labels.forEach(function(label) {
+				label.style.textAlign = 'left';
+				label.style.paddingLeft = '0'; // 左の字下げを解除（統一）
+			});
+		};
+
+		// 編集ページに遷移
 		function goToEditPage() {
 			const select = document.getElementById("bookSelect");
 			const bookId = select.value;
@@ -19,17 +32,17 @@
 		<h2 style="color: yellow; text-align: left; padding-left: 20px;">編集する書籍を選択してください</h2>
 	</header>
 
-	<form method="get" action="/bookchoice" style="margin: 10px 20px; font-weight: bold;">
-		<label>ステータスで絞り込む:</label> <select name="status">
-			<option value="" th:selected="${selectedStatus == null}">--
-				全て --</option>
+	<form method="get" action="/bookchoice">
+		<label>ステータスで絞り込む:</label>
+		<select name="status">
+			<option value="" th:selected="${selectedStatus == null}">-- 全て --</option>
 			<option value="reading" th:selected="${selectedStatus == 'reading'}">今読んでいる</option>
-			<option value="read" th:selected="${selectedStatus == 'read'}">既に読んだ</option>
+			<option value="read" th:selected="${selectedStatus == 'read'}">読み終わった</option>
 		</select>
 		<button type="submit">絞り込む</button>
 	</form>
 
-
+	<!-- 書籍選択ラベルを左詰めにする -->
 	<label>書籍選択:</label>
 	<select id="bookSelect">
 		<option value="">-- 書籍を選んでください --</option>
