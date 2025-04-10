@@ -39,22 +39,18 @@ public class Book {
 
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate endDate;
-
-	// startDateをフォーマットして返す
 	public String getFormattedStartDate() {
 		if (startDate != null) {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 			return startDate.format(formatter);
 		}
-		return null; // startDateがnullの場合はnullを返す
+		return null; 
 	}
-
-	// endDateをフォーマットして返す
 	public String getFormattedEndDate() {
 		if (endDate != null) {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 			return endDate.format(formatter);
 		}
-		return null; // endDateがnullの場合はnullを返す
+		return null;
 	}
 }
