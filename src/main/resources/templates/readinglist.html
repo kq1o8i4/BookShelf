@@ -23,6 +23,25 @@
 			text-decoration: none;
 			color: #000;
 		}
+
+		/* タイトルと読了日を横並びにするためのスタイル */
+		.book-info {
+			display: flex;
+			align-items: center;
+			/* 間隔を狭くする */
+			gap: 10px;
+			/* ここで間隔を調整 */
+		}
+
+		.book-info p {
+			margin: 0;
+			/* タイトルと読了日間のスペースを調整 */
+		}
+
+		/* 日付部分にブラウンカラーを適用 */
+		.date-text {
+			color: brown;
+		}
 	</style>
 </head>
 
@@ -44,26 +63,33 @@
 				th:selected="${author == selectedAuthor}"></option>
 		</select>
 
-		<!-- タイトルの絞り込み -->
-		<label for="title">タイトルで絞り込む: </label>
-		<select name="title" id="title" onchange="this.form.submit()">
-			<option value="">すべて</option>
-			<!-- タイトルのリストを動的に表示 -->
-			<option th:each="title : ${titles}" th:value="${title}" th:text="${title}"
-				th:selected="${title == selectedTitle}"></option>
-		</select>
+		<!-- タイトルのキーワード検索に変更 -->
+		<label for="titleKeyword">タイトル検索: </label>
+		<input type="text" id="titleKeyword" name="titleKeyword" th:value="${titleKeyword}" placeholder="キーワードを入力" />
+		<button type="submit">検索</button>
 	</form>
 
-
-	<!-- 読んでいる本リスト -->
+	<!-- 書籍リスト表示 -->
 	<div th:each="entry : ${booksByAuthor}">
-		<h3 th:text="${entry.key}">Author Name</h3>
-		<!-- 作者名を表示 -->
-		<ul>
-			<li th:each="book : ${entry.value}"><span th:text="${book.title}"></span></li>
-		</ul>
-	</div>
 
+		<!-- 1冊ごとに表示 -->
+		<div th:each="book : ${entry.value}" class="book-card">
+			<div class="book-info">
+				<p>
+					<strong>タイトル：</strong>
+					<a th:href="@{'/edit/' + ${book.id}}" th:text="${book.title}"></a>
+				</p>
+				<p>
+					<strong>著者：</strong>
+					<span th:text="${book.author}"></span>
+				</p>
+				<p th:if="${book.formattedStartDate != null}" class="date-text">
+					<strong>読書開始日：</strong>
+					<span th:text="${book.formattedStartDate}"></span>
+				</p>
+			</div>
+		</div>
+	</div>
 
 	<footer style="background-color: #D2B48C;">
 		<p>© 2025 BookShelf</p>
