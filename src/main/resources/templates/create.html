@@ -4,28 +4,22 @@
 <head>
 	<title>書籍登録</title>
 	<style>
-		/* テキストエリアのサイズ変更 */
 		textarea {
 			width: 30%;
-			/* 横幅100% */
 			height: 100px;
-			/* 高さを二倍に */
 		}
 
-		/* 青文字部分のフォントサイズを小さく */
 		.small-blue-text {
 			color: blue;
-			font-size: 12px; /* フォントサイズを小さく設定 */
+			font-size: 12px;
 		}
 
-		/* ラベルとフォームの間隔を狭くする */
 		label, input, select, textarea {
-			margin-bottom: 5px; /* 少しだけ余白を狭く */
+			margin-bottom: 5px; 
 		}
 
-		/* <br /> タグの後の間隔を狭くする */
 		br {
-			margin-bottom: 3px; /* 改行の後の間隔を少し狭く設定 */
+			margin-bottom: 3px;
 		}
 	</style>
 </head>
@@ -56,12 +50,12 @@
 		
 		<p class="small-blue-text">※ステータスに応じて、どちらかの日付のみ入力してください。</p>
 
-		<!-- レビューのラベルの後に改行を追加 -->
 		<label>レビュー</label><br />
 		<textarea th:field="*{review}"></textarea>
 		<br />
 		
 		<div th:if="${#fields.hasErrors('review')}" th:errors="*{review}" style="color: red"></div>
+		
 		<!-- エラーメッセージを表示 -->
 		<div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" style="color: red"></div>
 		<div th:if="${#fields.hasErrors('author')}" th:errors="*{author}" style="color: red"></div>
