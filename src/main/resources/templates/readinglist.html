@@ -2,79 +2,132 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<title>読んでいる本一覧</title>
-	<style>
-		ul {
-			padding-left: 0;
-			list-style-type: none;
-		}
-		li {
-			margin-bottom: 5px;
-		}
-		.mypage-link {
-			font-size: 16px;
-			margin-top: 20px;
-			display: block;
-			text-decoration: none;
-			color: #000;
-		}
-		.book-info {
-			display: flex;
-			align-items: center;
-			gap: 10px;
-		}
+    <title>読んでいる本一覧</title>
+    <style>
+        ul {
+            padding-left: 0;
+            list-style-type: none;
+        }
 
-		.book-info p {
-			margin: 0;
-		}
-		.date-text {
-			color: brown;
-		}
-	</style>
+        li {
+            margin-bottom: 5px;
+        }
+
+        .mypage-link {
+            font-size: 16px;
+            margin-top: 20px;
+            display: block;
+            text-decoration: none;
+            color: #000;
+        }
+
+        .book-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .book-info p {
+            margin: 0;
+        }
+
+        .date-text {
+            color: brown;
+        }
+
+        .sort-box {
+            margin: 15px 0;
+        }
+    </style>
 </head>
-	
+
 <body>
-	<header style="background-color: #D2B48C;">
-		<h2 style="color: yellow; padding-left: 20px;">読んでいる本一覧</h2>
-	</header>
-	<div class="mypage-link">
-		<a href="/mypage">マイページに戻る</a>
-	</div>
+    <header style="background-color: #D2B48C;">
+        <h2 style="color: yellow; padding-left: 20px;">読んでいる本一覧</h2>
+    </header>
 
-	<form action="/readinglist" method="get">
-		<label for="author">作者で絞り込む: </label>
-		<select name="author" id="author" onchange="this.form.submit()">
-			<option value="">すべて</option>
-			<option th:each="author : ${authors}" th:value="${author}" th:text="${author}"
-				th:selected="${author == selectedAuthor}"></option>
-		</select>
-		
-		<label for="titleKeyword">タイトル検索: </label>
-		<input type="text" id="titleKeyword" name="titleKeyword" th:value="${titleKeyword}" placeholder="キーワードを入力" />
-		<button type="submit">検索</button>
-	</form>
-	<div th:each="entry : ${booksByAuthor}">
-		<div th:each="book : ${entry.value}" class="book-card">
-			<div class="book-info">
-				<p>
-					<strong>タイトル：</strong>
-					<a th:href="@{'/edit/' + ${book.id}}" th:text="${book.title}"></a>
-				</p>
-				<p>
-					<strong>著者：</strong>
-					<span th:text="${book.author}"></span>
-				</p>
-				<p th:if="${book.formattedStartDate != null}" class="date-text">
-					<strong>読書開始日：</strong>
-					<span th:text="${book.formattedStartDate}"></span>
-				</p>
-			</div>
-		</div>
-	</div>
+    <div class="mypage-link">
+        <a href="/mypage">マイページに戻る</a>
+    </div>
 
-	<footer style="background-color: #D2B48C;">
-		<p>© 2025 BookShelf</p>
-	</footer>
+    <form action="/readinglist" method="get">
+        <label for="author">作者で絞り込む: </label>
+        <select name="author" id="author" onchange="this.form.submit()">
+            <option value="">すべて</option>
+            <option th:each="author : ${authors}" th:value="${author}" th:text="${author}" th:selected="${author == selectedAuthor}"></option>
+        </select>
+
+        <label for="titleKeyword">タイトル検索: </label>
+        <input type="text" id="titleKeyword" name="titleKeyword" th:value="${titleKeyword}" placeholder="キーワードを入力" />
+        <button type="submit">検索</button>
+    </form>
+
+    <!-- 🔽 ソート選択メニュー -->
+    <div class="sort-box">
+        <label for="sortSelect">並び替え：</label>
+        <select id="sortSelect" onchange="sortBooks()">
+            <option value="">-- 選択 --</option>
+            <option value="date">読書開始日順</option>
+            <option value="author">作者順（50音）</option>
+            <option value="title">タイトル順（50音）</option>
+        </select>
+    </div>
+
+    <!-- 🔽 ソート対象コンテナ -->
+    <div id="bookList">
+        <div th:each="entry : ${booksByAuthor}">
+            <div th:each="book : ${entry.value}" class="book-card">
+                <div class="book-info">
+                    <p>
+                        <strong>タイトル：</strong>
+                        <a th:href="@{'/edit/' + ${book.id}}" th:text="${book.title}"></a>
+                    </p>
+                    <p>
+                        <strong>著者：</strong>
+                        <span th:text="${book.author}"></span>
+                    </p>
+                    <p th:if="${book.formattedStartDate != null}" class="date-text">
+                        <strong>読書開始日：</strong>
+                        <span th:text="${book.formattedStartDate}"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="background-color: #D2B48C;">
+        <p>© 2025 BookShelf</p>
+    </footer>
+
+    <!-- 🔽 ソート用スクリプト -->
+    <script>
+        function sortBooks() {
+            const sortBy = document.getElementById("sortSelect").value;
+            const bookList = document.getElementById("bookList");
+            const bookCards = Array.from(bookList.querySelectorAll(".book-card"));
+
+            bookCards.sort((a, b) => {
+                const getText = (el, selector) => el.querySelector(selector)?.textContent.trim() || "";
+
+                if (sortBy === "date") {
+                    const dateA = new Date(getText(a, ".date-text span"));
+                    const dateB = new Date(getText(b, ".date-text span"));
+                    return dateA - dateB;
+                } else if (sortBy === "author") {
+                    const authorA = getText(a, "p:nth-child(2) span");
+                    const authorB = getText(b, "p:nth-child(2) span");
+                    return authorA.localeCompare(authorB, 'ja');
+                } else if (sortBy === "title") {
+                    const titleA = getText(a, "p:nth-child(1) a");
+                    const titleB = getText(b, "p:nth-child(1) a");
+                    return titleA.localeCompare(titleB, 'ja');
+                }
+                return 0;
+            });
+
+            bookCards.forEach(card => bookList.appendChild(card));
+        }
+    </script>
 </body>
 
 </html>
