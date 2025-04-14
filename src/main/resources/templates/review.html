@@ -2,62 +2,120 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<title>レビュー一覧</title>
-	<style>
-		ul {
-			padding-left: 0;
-			list-style-type: none;
-		}
+<title>レビュー一覧</title>
+<style>
+ul {
+	padding-left: 0;
+	list-style-type: none;
+}
 
-		li {
-			margin-bottom: 5px;
-		}
+li {
+	margin-bottom: 5px;
+}
 
-		.mypage-link {
-			font-size: 16px;
-			margin-top: 20px;
-			display: block;
-			text-decoration: none;
-			color: #000;
-		}
-	</style>
+.mypage-link {
+	font-size: 16px;
+	margin-top: 20px;
+	display: block;
+	text-decoration: none;
+	color: #000;
+}
+
+.review-item {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.review-date {
+	color: brown;
+}
+
+.registration-date {
+	color: gray;
+	font-size: 12px;
+}
+</style>
 </head>
 
 <body>
 	<header style="background-color: #D2B48C; text-align: center;">
 		<h2 style="color: yellow; text-align: left; padding-left: 20px;">レビュー一覧</h2>
-
 	</header>
 
 	<div class="mypage-link">
 		<a href="/mypage">マイページに戻る</a>
 	</div>
+
 	<form action="/review" method="get">
 		<label for="author">作者で絞り込む: </label>
 		<select name="author" id="author" onchange="this.form.submit()">
 			<option value="">すべて</option>
-			<option th:each="author : ${authors}" th:value="${author}" th:text="${author}"
-				th:selected="${author == selectedAuthor}"></option>
+			<option th:each="author : ${authors}" th:value="${author}"
+				th:text="${author}" th:selected="${author == selectedAuthor}"></option>
 		</select>
-		<label for="title">タイトルで絞り込む: </label>
-		<select name="title" id="title" onchange="this.form.submit()">
-			<option value="">すべて</option>
-			<option th:each="title : ${titles}" th:value="${title}" th:text="${title}"
-				th:selected="${title == selectedTitle}"></option>
-		</select>
+
+		<label for="titleKeyword">タイトル検索: </label>
+		<input type="text" id="titleKeyword" name="titleKeyword"
+			th:value="${titleKeyword}" placeholder="キーワードを入力" />
+		<button type="submit">検索</button>
 	</form>
-	<ul>
-		<li th:each="book : ${readBooks}">
-			<span th:text="${book.review}"></span>
-			<a th:href="@{/edit/{id}(id=${book.id})}" th:text="' / ' + ${book.title}"></a>
+
+	<!-- 🔽 ソート選択メニュー -->
+	<div class="sort-box" style="margin-top: 15px;">
+		<label for="sortSelect">並び替え：</label>
+		<select id="sortSelect" onchange="sortReviews()">
+			<option value="">-- 選択 --</option>
+			<option value="date">読了日順</option>
+			<option value="author">作者順（50音）</option>
+			<option value="title">タイトル順（50音）</option>
+		</select>
+	</div>
+
+	<!-- 🔽 レビューリスト -->
+	<ul id="reviewList">
+		<li th:each="book : ${readBooks}" class="review-item">
+			<span class="review-text" th:text="${book.review}"></span>
+			<a th:href="@{/edit/{id}(id=${book.id})}" class="book-title" th:text="' / ' + ${book.title}"></a>
+			<span class="book-author" style="display:none;" th:text="${book.author}"></span>
+			<span class="review-date" style="display:none;" th:text="${book.formattedEndDate}"></span>
+			<span class="review-date" th:text="${book.formattedEndDate}"></span>
 		</li>
 	</ul>
-
 
 	<footer style="background-color: #D2B48C;">
 		<p>© 2025 BookShelf</p>
 	</footer>
 
+	<!-- 🔽 JavaScriptによるソート -->
+	<script>
+		function sortReviews() {
+			const sortBy = document.getElementById("sortSelect").value;
+			const list = document.getElementById("reviewList");
+			const items = Array.from(list.querySelectorAll("li.review-item"));
+
+			items.sort((a, b) => {
+				const getText = (el, selector) => el.querySelector(selector)?.textContent.trim() || "";
+
+				if (sortBy === "date") {
+					const dateA = new Date(getText(a, ".review-date"));
+					const dateB = new Date(getText(b, ".review-date"));
+					return dateA - dateB;
+				} else if (sortBy === "author") {
+					const authorA = getText(a, ".book-author");
+					const authorB = getText(b, ".book-author");
+					return authorA.localeCompare(authorB, 'ja');
+				} else if (sortBy === "title") {
+					const titleA = getText(a, ".book-title");
+					const titleB = getText(b, ".book-title");
+					return titleA.localeCompare(titleB, 'ja');
+				}
+				return 0;
+			});
+
+			items.forEach(item => list.appendChild(item));
+		}
+	</script>
 </body>
 
 </html>
