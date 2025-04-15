@@ -16,18 +16,22 @@ public class BookService {
 	@Autowired
 	private BookRepository bookRepository;
 
+	// ステータス（reading / read）で書籍一覧を取得
 	public List<Book> findByStatus(String status) {
 		return bookRepository.findByStatus(status);
 	}
 
+	// 全ての書籍を取得
 	public List<Book> findAll() {
 		return bookRepository.findAll();
 	}
 
+	// 著者ごとに書籍をグループ化
 	public Map<String, List<Book>> groupByAuthor(List<Book> books) {
 		return books.stream().collect(Collectors.groupingBy(Book::getAuthor));
 	}
 
+	// 指定ステータスの書籍の著者一覧（重複なし）を取得
 	public List<String> getDistinctAuthorsByStatus(String status) {
 		return bookRepository.findByStatus(status).stream()
 				.map(Book::getAuthor)
@@ -35,37 +39,44 @@ public class BookService {
 				.collect(Collectors.toList());
 	}
 
+	// 同じタイトル・著者・ステータスの書籍が既に存在するかをチェック
 	public boolean existsByTitleAuthorStatus(Book book) {
 		return bookRepository.existsByTitleAndAuthorAndStatus(book.getTitle(), book.getAuthor(), book.getStatus());
 	}
 
+	// 書籍のステータスに応じて開始日・終了日・レビューを整える
 	public void prepareBookDates(Book book) {
 		if ("reading".equals(book.getStatus())) {
-			book.setReview(null);
+			book.setReview(null);      // 読書中の場合、レビューと終了日は不要
 			book.setEndDate(null);
 		} else if ("read".equals(book.getStatus())) {
-			book.setStartDate(null);
+			book.setStartDate(null);   // 読了済みの場合、開始日は不要
 		}
 	}
 
+	// 書籍を保存（新規作成・更新どちらも対応）
 	public void save(Book book) {
 		bookRepository.save(book);
 	}
 
+	// 書籍IDで1件取得（存在しない場合は例外をスロー）
 	public Book findById(Long id) {
 		return bookRepository.findById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
 	}
 
+	// 書籍をIDで削除
 	public void deleteById(Long id) {
 		bookRepository.deleteById(id);
 	}
 
+	// レビューありの読了書籍を取得（オプションで著者・タイトルで絞り込み）
 	public List<Book> findReviewedBooks(String author, String title) {
 		List<Book> books = bookRepository.findByStatusAndReviewIsNotNullAndReviewNot("read", "");
 		return filterByAuthorAndTitle(books, author, title);
 	}
 
+	// 書籍リストを著者・タイトルキーワードでフィルタリング
 	public List<Book> filterByAuthorAndTitle(List<Book> books, String author, String titleKeyword) {
 		if (author != null && !author.isEmpty()) {
 			books = books.stream()
@@ -80,6 +91,7 @@ public class BookService {
 		return books;
 	}
 
+	// 書籍リストから著者一覧を抽出（重複なし）
 	public List<String> extractDistinctAuthors(List<Book> books) {
 		return books.stream()
 				.map(Book::getAuthor)
@@ -87,6 +99,7 @@ public class BookService {
 				.collect(Collectors.toList());
 	}
 
+	// 書籍リストからタイトル一覧を抽出（重複なし）
 	public List<String> extractDistinctTitles(List<Book> books) {
 		return books.stream()
 				.map(Book::getTitle)
@@ -94,14 +107,17 @@ public class BookService {
 				.collect(Collectors.toList());
 	}
 
+	// 書籍情報を更新
 	public void updateBook(Long id, Book updatedBook) {
-		Book book = findById(id);
+		Book book = findById(id); // 対象の書籍を取得
+		// 各プロパティを更新
 		book.setTitle(updatedBook.getTitle());
 		book.setAuthor(updatedBook.getAuthor());
 		book.setStatus(updatedBook.getStatus());
 		book.setStartDate(updatedBook.getStartDate());
 		book.setEndDate(updatedBook.getEndDate());
 		book.setReview(updatedBook.getReview());
+		// 保存
 		save(book);
 	}
 }
