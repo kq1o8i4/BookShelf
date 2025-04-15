@@ -24,6 +24,7 @@ public class BookController {
 	@Autowired
 	private BookService bookService;
 
+	// マイページの表示（最新の読書中・読了書籍を3件ずつ表示）
 	@GetMapping("/mypage")
 	public String showMyPage(Model model) {
 		List<Book> allReadingBooks = bookService.findByStatus("reading");
@@ -35,6 +36,7 @@ public class BookController {
 		return "mypage";
 	}
 
+	// 読書中リストの表示（著者やタイトルキーワードで絞り込み可能）
 	@GetMapping("/readinglist")
 	public String showReadingList(
 			@RequestParam(value = "author", required = false) String author,
@@ -53,6 +55,7 @@ public class BookController {
 		return "readinglist";
 	}
 
+	// 読了リストの表示（著者やタイトルキーワードで絞り込み可能）
 	@GetMapping("/readlist")
 	public String showReadList(
 			@RequestParam(value = "author", required = false) String author,
@@ -71,26 +74,33 @@ public class BookController {
 		return "readlist";
 	}
 
+	// 書籍作成フォームの表示
 	@GetMapping("/create")
 	public String showCreateForm(Model model) {
 		model.addAttribute("book", new Book());
 		return "create";
 	}
 
+	// 書籍作成フォームの送信処理
 	@PostMapping("/create")
 	public String createBook(@Valid @ModelAttribute Book book, BindingResult result, Model model) {
+		// 同一タイトル・著者・ステータスの書籍が存在するかチェック
 		if (bookService.existsByTitleAuthorStatus(book)) {
 			result.rejectValue("title", "error.book", "この書籍は既に登録されています。");
 			return "create";
 		}
+		// ステータスに応じた日付調整
 		bookService.prepareBookDates(book);
+		// バリデーションエラーがあれば戻る
 		if (result.hasErrors()) {
 			return "create";
 		}
+		// 書籍を保存
 		bookService.save(book);
 		return "redirect:/mypage";
 	}
 
+	// レビュー一覧の表示（著者・タイトルで絞り込み可能）
 	@GetMapping("/review")
 	public String showReviews(
 			@RequestParam(value = "author", required = false) String author,
@@ -109,7 +119,8 @@ public class BookController {
 
 		return "review";
 	}
-
+	
+	// 書籍選択画面の表示（ステータスで絞り込み可能）
 	@GetMapping("/bookchoice")
 	public String showBookChoice(@RequestParam(required = false) String status, Model model) {
 		List<Book> books = (status != null && !status.isEmpty())
@@ -120,7 +131,8 @@ public class BookController {
 		model.addAttribute("selectedBookId", new Book());
 		return "bookchoice";
 	}
-
+	
+	// 編集フォームの表示
 	@GetMapping("/edit/{id}")
 	public String showEditForm(@PathVariable Long id, Model model) {
 		Book book = bookService.findById(id);
@@ -128,6 +140,7 @@ public class BookController {
 		return "edit";
 	}
 
+	// 書籍編集の保存処理
 	@PostMapping("/edit/{id}")
 	public String updateBook(@PathVariable Long id, @Valid @ModelAttribute Book updatedBook, BindingResult result, Model model) {
 		if (result.hasErrors()) {
@@ -137,12 +150,12 @@ public class BookController {
 		bookService.updateBook(id, updatedBook);
 		return "redirect:/mypage";
 	}
-
+	// 削除ページの表示
 	@GetMapping("/delete")
 	public String showDeletePage() {
 		return "delete";
 	}
-
+	// 書籍の削除処理
 	@PostMapping("/delete/{id}")
 	public String deleteBook(@PathVariable Long id) {
 		bookService.deleteById(id);
