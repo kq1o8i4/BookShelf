@@ -4,14 +4,17 @@
 <head>
 	<title>書籍選択</title>
 	<script>
-		window.onload = function() {
+		// ページ読み込み時に label のスタイルを調整
+		window.onload = function () {
 			const labels = document.querySelectorAll('label');
-		
-			labels.forEach(function(label) {
+
+			labels.forEach(function (label) {
 				label.style.textAlign = 'left';
 				label.style.paddingLeft = '0';
 			});
 		};
+
+		// 書籍IDを取得して編集ページへ遷移
 		function goToEditPage() {
 			const select = document.getElementById("bookSelect");
 			const bookId = select.value;
@@ -23,31 +26,41 @@
 </head>
 
 <body>
+	<!-- ヘッダー -->
 	<header style="background-color: #D2B48C; text-align: center;">
 		<h2 style="color: yellow; text-align: left; padding-left: 20px;">編集する書籍を選択してください</h2>
 	</header>
 
+	<!-- 絞り込みフォーム -->
 	<form method="get" action="/bookchoice">
 		<label>ステータスで絞り込む:</label>
 		<select name="status">
+			<!-- 全てのステータス -->
 			<option value="" th:selected="${selectedStatus == null}">-- 全て --</option>
+			<!-- 今読んでいる -->
 			<option value="reading" th:selected="${selectedStatus == 'reading'}">今読んでいる</option>
+			<!-- 読み終わった -->
 			<option value="read" th:selected="${selectedStatus == 'read'}">読み終わった</option>
 		</select>
 		<button type="submit">絞り込む</button>
 	</form>
-	
+
+	<!-- 書籍選択 -->
 	<label>書籍選択:</label>
 	<select id="bookSelect">
 		<option value="">-- 書籍を選んでください --</option>
+		<!--/* 書籍一覧をループ */-->
 		<option th:each="book : ${books}" th:value="${book.id}" th:text="${book.title}"></option>
 	</select>
 
+	<!-- 編集ボタン -->
 	<button type="button" onclick="goToEditPage()">編集</button>
 
+	<!-- 戻るリンク -->
 	<a href="/mypage">戻る</a>
 </body>
 
+<!-- フッター -->
 <footer style="background-color: #D2B48C;">
 	<p>© 2025 BookShelf</p>
 </footer>
