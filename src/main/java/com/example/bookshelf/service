@@ -1,0 +1,107 @@
+package com.example.bookshelf.service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.example.bookshelf.entity.Book;
+import com.example.bookshelf.repository.BookRepository;
+
+@Service
+public class BookService {
+
+	@Autowired
+	private BookRepository bookRepository;
+
+	public List<Book> findByStatus(String status) {
+		return bookRepository.findByStatus(status);
+	}
+
+	public List<Book> findAll() {
+		return bookRepository.findAll();
+	}
+
+	public Map<String, List<Book>> groupByAuthor(List<Book> books) {
+		return books.stream().collect(Collectors.groupingBy(Book::getAuthor));
+	}
+
+	public List<String> getDistinctAuthorsByStatus(String status) {
+		return bookRepository.findByStatus(status).stream()
+				.map(Book::getAuthor)
+				.distinct()
+				.collect(Collectors.toList());
+	}
+
+	public boolean existsByTitleAuthorStatus(Book book) {
+		return bookRepository.existsByTitleAndAuthorAndStatus(book.getTitle(), book.getAuthor(), book.getStatus());
+	}
+
+	public void prepareBookDates(Book book) {
+		if ("reading".equals(book.getStatus())) {
+			book.setReview(null);
+			book.setEndDate(null);
+		} else if ("read".equals(book.getStatus())) {
+			book.setStartDate(null);
+		}
+	}
+
+	public void save(Book book) {
+		bookRepository.save(book);
+	}
+
+	public Book findById(Long id) {
+		return bookRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
+	}
+
+	public void deleteById(Long id) {
+		bookRepository.deleteById(id);
+	}
+
+	public List<Book> findReviewedBooks(String author, String title) {
+		List<Book> books = bookRepository.findByStatusAndReviewIsNotNullAndReviewNot("read", "");
+		return filterByAuthorAndTitle(books, author, title);
+	}
+
+	public List<Book> filterByAuthorAndTitle(List<Book> books, String author, String titleKeyword) {
+		if (author != null && !author.isEmpty()) {
+			books = books.stream()
+					.filter(book -> book.getAuthor().equals(author))
+					.collect(Collectors.toList());
+		}
+		if (titleKeyword != null && !titleKeyword.isEmpty()) {
+			books = books.stream()
+					.filter(book -> book.getTitle() != null && book.getTitle().contains(titleKeyword))
+					.collect(Collectors.toList());
+		}
+		return books;
+	}
+
+	public List<String> extractDistinctAuthors(List<Book> books) {
+		return books.stream()
+				.map(Book::getAuthor)
+				.distinct()
+				.collect(Collectors.toList());
+	}
+
+	public List<String> extractDistinctTitles(List<Book> books) {
+		return books.stream()
+				.map(Book::getTitle)
+				.distinct()
+				.collect(Collectors.toList());
+	}
+
+	public void updateBook(Long id, Book updatedBook) {
+		Book book = findById(id);
+		book.setTitle(updatedBook.getTitle());
+		book.setAuthor(updatedBook.getAuthor());
+		book.setStatus(updatedBook.getStatus());
+		book.setStartDate(updatedBook.getStartDate());
+		book.setEndDate(updatedBook.getEndDate());
+		book.setReview(updatedBook.getReview());
+		save(book);
+	}
+}
