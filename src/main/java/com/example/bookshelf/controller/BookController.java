@@ -1,9 +1,7 @@
-
 package com.example.bookshelf.controller;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import jakarta.validation.Valid;
 
@@ -18,26 +16,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.bookshelf.entity.Book;
-import com.example.bookshelf.repository.BookRepository;
+import com.example.bookshelf.service.BookService;
 
 @Controller
 public class BookController {
+
 	@Autowired
-	private BookRepository bookRepository;
+	private BookService bookService;
 
 	@GetMapping("/mypage")
 	public String showMyPage(Model model) {
-
-		List<Book> allReadingBooks = bookRepository.findByStatus("reading");
-		List<Book> allReadBooks = bookRepository.findByStatus("read");
-		List<Book> readingBooks = allReadingBooks.stream().limit(3).toList();
-		List<Book> readBooks = allReadBooks.stream().limit(3).toList();
-
-		model.addAttribute("readingBooks", readingBooks);
-		model.addAttribute("readBooks", readBooks);
+		List<Book> allReadingBooks = bookService.findByStatus("reading");
+		List<Book> allReadBooks = bookService.findByStatus("read");
+		model.addAttribute("readingBooks", allReadingBooks.stream().limit(3).toList());
+		model.addAttribute("readBooks", allReadBooks.stream().limit(3).toList());
 		model.addAttribute("hasMoreReading", allReadingBooks.size() > 3);
 		model.addAttribute("hasMoreRead", allReadBooks.size() > 3);
-
 		return "mypage";
 	}
 
@@ -47,25 +41,10 @@ public class BookController {
 			@RequestParam(value = "titleKeyword", required = false) String titleKeyword,
 			Model model) {
 
-		List<Book> readingBooks = bookRepository.findByStatus("reading");
-		if (author != null && !author.isEmpty()) {
-			readingBooks = readingBooks.stream()
-					.filter(book -> book.getAuthor().equals(author))
-					.collect(Collectors.toList());
-		}
-
-		if (titleKeyword != null && !titleKeyword.isEmpty()) {
-			readingBooks = readingBooks.stream()
-					.filter(book -> book.getTitle() != null && book.getTitle().contains(titleKeyword))
-					.collect(Collectors.toList());
-		}
-		Map<String, List<Book>> booksByAuthor = readingBooks.stream()
-				.collect(Collectors.groupingBy(Book::getAuthor));
-
-		List<String> authors = bookRepository.findByStatus("reading").stream()
-				.map(Book::getAuthor)
-				.distinct()
-				.collect(Collectors.toList());
+		List<Book> books = bookService.findByStatus("reading");
+		books = bookService.filterByAuthorAndTitle(books, author, titleKeyword);
+		Map<String, List<Book>> booksByAuthor = bookService.groupByAuthor(books);
+		List<String> authors = bookService.getDistinctAuthorsByStatus("reading");
 
 		model.addAttribute("booksByAuthor", booksByAuthor);
 		model.addAttribute("authors", authors);
@@ -80,32 +59,15 @@ public class BookController {
 			@RequestParam(value = "titleKeyword", required = false) String titleKeyword,
 			Model model) {
 
-		List<Book> readBooks = bookRepository.findByStatus("read");
-
-		if (author != null && !author.isEmpty()) {
-			readBooks = readBooks.stream()
-					.filter(book -> book.getAuthor().equals(author))
-					.collect(Collectors.toList());
-		}
-
-		if (titleKeyword != null && !titleKeyword.isEmpty()) {
-			readBooks = readBooks.stream()
-					.filter(book -> book.getTitle() != null && book.getTitle().contains(titleKeyword))
-					.collect(Collectors.toList());
-		}
-
-		Map<String, List<Book>> booksByAuthor = readBooks.stream()
-				.collect(Collectors.groupingBy(Book::getAuthor));
-		List<String> authors = bookRepository.findByStatus("read").stream()
-				.map(Book::getAuthor)
-				.distinct()
-				.collect(Collectors.toList());
+		List<Book> books = bookService.findByStatus("read");
+		books = bookService.filterByAuthorAndTitle(books, author, titleKeyword);
+		Map<String, List<Book>> booksByAuthor = bookService.groupByAuthor(books);
+		List<String> authors = bookService.getDistinctAuthorsByStatus("read");
 
 		model.addAttribute("booksByAuthor", booksByAuthor);
 		model.addAttribute("authors", authors);
 		model.addAttribute("selectedAuthor", author);
 		model.addAttribute("titleKeyword", titleKeyword);
-
 		return "readlist";
 	}
 
@@ -117,51 +79,29 @@ public class BookController {
 
 	@PostMapping("/create")
 	public String createBook(@Valid @ModelAttribute Book book, BindingResult result, Model model) {
-		if (bookRepository.existsByTitleAndAuthorAndStatus(book.getTitle(), book.getAuthor(), book.getStatus())) {
+		if (bookService.existsByTitleAuthorStatus(book)) {
 			result.rejectValue("title", "error.book", "この書籍は既に登録されています。");
 			return "create";
 		}
-		if ("reading".equals(book.getStatus())) {
-			book.setReview(null);
-			book.setEndDate(null);
-		} else if ("read".equals(book.getStatus())) {
-			book.setStartDate(null);
-		}
+		bookService.prepareBookDates(book);
 		if (result.hasErrors()) {
 			return "create";
 		}
-		bookRepository.save(book);
+		bookService.save(book);
 		return "redirect:/mypage";
 	}
 
 	@GetMapping("/review")
-	public String showReviews(@RequestParam(value = "author", required = false) String author,
+	public String showReviews(
+			@RequestParam(value = "author", required = false) String author,
 			@RequestParam(value = "title", required = false) String title,
 			Model model) {
-		List<Book> readBooksWithReview = bookRepository.findByStatusAndReviewIsNotNullAndReviewNot("read", "");
 
-		if (author != null && !author.isEmpty()) {
-			readBooksWithReview = readBooksWithReview.stream()
-					.filter(book -> book.getAuthor().equals(author))
-					.collect(Collectors.toList());
-		}
+		List<Book> readBooks = bookService.findReviewedBooks(author, title);
+		List<String> authors = bookService.extractDistinctAuthors(readBooks);
+		List<String> titles = bookService.extractDistinctTitles(readBooks);
 
-		if (title != null && !title.isEmpty()) {
-			readBooksWithReview = readBooksWithReview.stream()
-					.filter(book -> book.getTitle().equals(title))
-					.collect(Collectors.toList());
-		}
-
-		model.addAttribute("readBooks", readBooksWithReview);
-		List<String> authors = readBooksWithReview.stream()
-				.map(Book::getAuthor)
-				.distinct()
-				.collect(Collectors.toList());
-		List<String> titles = readBooksWithReview.stream()
-				.map(Book::getTitle)
-				.distinct()
-				.collect(Collectors.toList());
-
+		model.addAttribute("readBooks", readBooks);
 		model.addAttribute("authors", authors);
 		model.addAttribute("titles", titles);
 		model.addAttribute("selectedAuthor", author);
@@ -172,59 +112,40 @@ public class BookController {
 
 	@GetMapping("/bookchoice")
 	public String showBookChoice(@RequestParam(required = false) String status, Model model) {
-		List<Book> books;
-
-		if (status != null && !status.isEmpty()) {
-			books = bookRepository.findByStatus(status);
-			model.addAttribute("selectedStatus", status);
-		} else {
-			books = bookRepository.findAll();
-		}
-
+		List<Book> books = (status != null && !status.isEmpty())
+				? bookService.findByStatus(status)
+				: bookService.findAll();
 		model.addAttribute("books", books);
+		model.addAttribute("selectedStatus", status);
 		model.addAttribute("selectedBookId", new Book());
-
 		return "bookchoice";
-	}
-
-	@PostMapping("/edit/{id}")
-	public String updateBook(@PathVariable Long id, @Valid @ModelAttribute Book updatedBook, BindingResult result,
-			Model model) {
-		if (result.hasErrors()) {
-			model.addAttribute("book", updatedBook);
-			return "edit";
-		}
-
-		Book book = bookRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
-
-		book.setTitle(updatedBook.getTitle());
-		book.setAuthor(updatedBook.getAuthor());
-		book.setStatus(updatedBook.getStatus());
-		book.setStartDate(updatedBook.getStartDate());
-		book.setEndDate(updatedBook.getEndDate());
-		book.setReview(updatedBook.getReview());
-
-		bookRepository.save(book);
-		return "redirect:/mypage";
 	}
 
 	@GetMapping("/edit/{id}")
 	public String showEditForm(@PathVariable Long id, Model model) {
-		Book book = bookRepository.findById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Invalid book Id:" + id));
+		Book book = bookService.findById(id);
 		model.addAttribute("book", book);
 		return "edit";
 	}
 
-	@PostMapping("/delete/{id}")
-	public String deleteBook(@PathVariable Long id) {
-		bookRepository.deleteById(id);
-		return "redirect:/delete";
+	@PostMapping("/edit/{id}")
+	public String updateBook(@PathVariable Long id, @Valid @ModelAttribute Book updatedBook, BindingResult result, Model model) {
+		if (result.hasErrors()) {
+			model.addAttribute("book", updatedBook);
+			return "edit";
+		}
+		bookService.updateBook(id, updatedBook);
+		return "redirect:/mypage";
 	}
 
 	@GetMapping("/delete")
 	public String showDeletePage() {
 		return "delete";
+	}
+
+	@PostMapping("/delete/{id}")
+	public String deleteBook(@PathVariable Long id) {
+		bookService.deleteById(id);
+		return "redirect:/delete";
 	}
 }
