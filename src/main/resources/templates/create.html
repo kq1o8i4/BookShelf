@@ -4,20 +4,20 @@
 <head>
 	<title>書籍登録</title>
 	<style>
+		/* 入力エリアのスタイル調整 */
 		textarea {
 			width: 30%;
 			height: 100px;
 		}
 
+		/* 小さめの青文字 */
 		.small-blue-text {
 			color: blue;
 			font-size: 12px;
 		}
 
-		label,
-		input,
-		select,
-		textarea {
+		/* ラベルや入力欄のマージン調整 */
+		label, input, select, textarea {
 			margin-bottom: 5px;
 		}
 
@@ -28,53 +28,71 @@
 </head>
 
 <body>
+	<!-- ヘッダー -->
 	<header style="background-color: #D2B48C; text-align: center;">
 		<h2 style="color: yellow; text-align: left; padding-left: 20px;">書籍登録</h2>
 	</header>
 
+	<!-- 書籍登録フォーム -->
 	<form action="#" th:action="@{/create}" th:object="${book}" method="post">
+		
+		<!-- ステータス選択 -->
 		<label>ステータス:</label>
 		<select th:field="*{status}">
 			<option value="reading">今読んでいる</option>
 			<option value="read">読み終わった</option>
-		</select><br />
+		</select>
+		<br />
 
+		<!-- タイトル入力 -->
 		<label>タイトル:</label>
-		<input type="text" th:field="*{title}" /><br />
+		<input type="text" th:field="*{title}" />
+		<br />
 
+		<!-- 著者入力 -->
 		<label>著者:</label>
-		<input type="text" th:field="*{author}" /><br />
+		<input type="text" th:field="*{author}" />
+		<br />
 
+		<!-- 読書開始日（reading用） -->
 		<label>読書開始日（「今読んでいる」用）:</label>
 		<input type="date" th:field="*{startDate}"
-			th:attr="max=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" /><br />
+			th:attr="max=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" />
+		<br />
 
+		<!-- 読了日（read用） -->
 		<label>読了日（「読み終わった」用）:</label>
-		<input type="date" th:field="*{endDate}" th:attr="max=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" />
+		<input type="date" th:field="*{endDate}"
+			th:attr="max=${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" />
 
-
+		<!-- 日付入力の注意 -->
 		<p class="small-blue-text">※ステータスに応じて、どちらかの日付のみ入力してください。</p>
 
+		<!-- レビュー入力（readのみ） -->
 		<label>レビュー</label><br />
 		<textarea th:field="*{review}"></textarea>
 		<br />
 
+		<!-- レビューのバリデーションエラー表示 -->
 		<div th:if="${#fields.hasErrors('review')}" th:errors="*{review}" style="color: red"></div>
 
-		<!-- エラーメッセージを表示 -->
+		<!-- その他のバリデーションエラー -->
 		<div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" style="color: red"></div>
 		<div th:if="${#fields.hasErrors('author')}" th:errors="*{author}" style="color: red"></div>
 		<div th:if="${#fields.hasErrors('status')}" th:errors="*{status}" style="color: red"></div>
 
+		<!-- レビュー登録の注意 -->
 		<p class="small-blue-text">※「今読んでいる」ステータスの場合、レビューは登録されません。</p>
 
+		<!-- 登録ボタン -->
 		<button type="submit">登録</button>
 	</form>
 
+	<!-- 戻るリンク -->
 	<a href="/mypage">戻る</a>
-
 </body>
 
+<!-- フッター -->
 <footer style="background-color: #D2B48C;">
 	<p>© 2025 BookShelf</p>
 </footer>
