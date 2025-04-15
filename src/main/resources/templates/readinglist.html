@@ -4,6 +4,7 @@
 <head>
     <title>読んでいる本一覧</title>
     <style>
+        /* リストのスタイル */
         ul {
             padding-left: 0;
             list-style-type: none;
@@ -13,6 +14,7 @@
             margin-bottom: 5px;
         }
 
+        /* マイページリンクのスタイル */
         .mypage-link {
             font-size: 16px;
             margin-top: 20px;
@@ -21,6 +23,7 @@
             color: #000;
         }
 
+        /* 本の情報を表示するためのスタイル */
         .book-info {
             display: flex;
             align-items: center;
@@ -31,10 +34,12 @@
             margin: 0;
         }
 
+        /* 日付を強調するためのスタイル */
         .date-text {
             color: brown;
         }
 
+        /* 並び替え選択ボックスのスタイル */
         .sort-box {
             margin: 15px 0;
         }
@@ -42,27 +47,32 @@
 </head>
 
 <body>
+    <!-- ヘッダー：ページタイトルとして「読んでいる本一覧」を表示 -->
     <header style="background-color: #D2B48C;">
         <h2 style="color: yellow; padding-left: 20px;">読んでいる本一覧</h2>
     </header>
 
+    <!-- マイページに戻るリンク -->
     <div class="mypage-link">
         <a href="/mypage">マイページに戻る</a>
     </div>
 
+    <!-- フィルタリングフォーム（作者で絞り込む、タイトル検索） -->
     <form action="/readinglist" method="get">
+        <!-- 作者で絞り込むドロップダウン -->
         <label for="author">作者で絞り込む: </label>
         <select name="author" id="author" onchange="this.form.submit()">
             <option value="">すべて</option>
             <option th:each="author : ${authors}" th:value="${author}" th:text="${author}" th:selected="${author == selectedAuthor}"></option>
         </select>
 
+        <!-- タイトル検索フィールド -->
         <label for="titleKeyword">タイトル検索: </label>
         <input type="text" id="titleKeyword" name="titleKeyword" th:value="${titleKeyword}" placeholder="キーワードを入力" />
         <button type="submit">検索</button>
     </form>
 
-    <!-- 🔽 ソート選択メニュー -->
+    <!-- 🔽 ソート選択メニュー：並び替えオプション -->
     <div class="sort-box">
         <label for="sortSelect">並び替え：</label>
         <select id="sortSelect" onchange="sortBooks()">
@@ -73,19 +83,23 @@
         </select>
     </div>
 
-    <!-- 🔽 ソート対象コンテナ -->
+    <!-- 🔽 ソート対象の本リストコンテナ -->
     <div id="bookList">
+        <!-- 書籍のリストを表示。Thymeleafで`booksByAuthor`から書籍を動的に表示 -->
         <div th:each="entry : ${booksByAuthor}">
             <div th:each="book : ${entry.value}" class="book-card">
                 <div class="book-info">
+                    <!-- 本のタイトルをリンクとして表示。クリックすると編集ページに遷移 -->
                     <p>
                         <strong>タイトル：</strong>
                         <a th:href="@{'/edit/' + ${book.id}}" th:text="${book.title}"></a>
                     </p>
+                    <!-- 本の著者を表示 -->
                     <p>
                         <strong>著者：</strong>
                         <span th:text="${book.author}"></span>
                     </p>
+                    <!-- 読書開始日が設定されていれば表示 -->
                     <p th:if="${book.formattedStartDate != null}" class="date-text">
                         <strong>読書開始日：</strong>
                         <span th:text="${book.formattedStartDate}"></span>
@@ -95,6 +109,7 @@
         </div>
     </div>
 
+    <!-- フッター：コピーライト表示 -->
     <footer style="background-color: #D2B48C;">
         <p>© 2025 BookShelf</p>
     </footer>
@@ -106,25 +121,27 @@
             const bookList = document.getElementById("bookList");
             const bookCards = Array.from(bookList.querySelectorAll(".book-card"));
 
+            // 並び替えの条件に従ってリストを並べ替える
             bookCards.sort((a, b) => {
                 const getText = (el, selector) => el.querySelector(selector)?.textContent.trim() || "";
 
                 if (sortBy === "date") {
                     const dateA = new Date(getText(a, ".date-text span"));
                     const dateB = new Date(getText(b, ".date-text span"));
-                    return dateA - dateB;
+                    return dateA - dateB; // 日付順にソート
                 } else if (sortBy === "author") {
                     const authorA = getText(a, "p:nth-child(2) span");
                     const authorB = getText(b, "p:nth-child(2) span");
-                    return authorA.localeCompare(authorB, 'ja');
+                    return authorA.localeCompare(authorB, 'ja'); // 作者順（50音順）にソート
                 } else if (sortBy === "title") {
                     const titleA = getText(a, "p:nth-child(1) a");
                     const titleB = getText(b, "p:nth-child(1) a");
-                    return titleA.localeCompare(titleB, 'ja');
+                    return titleA.localeCompare(titleB, 'ja'); // タイトル順（50音順）にソート
                 }
-                return 0;
+                return 0; // ソート条件が選択されていない場合はそのまま
             });
 
+            // 並び替えたカードをリストに再配置
             bookCards.forEach(card => bookList.appendChild(card));
         }
     </script>
